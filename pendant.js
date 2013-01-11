@@ -36,7 +36,7 @@ var Pendant = function newPendant(){
 			}
 		},
 		// Return the pendant's internal state
-		getstatus     : function(){
+		getStatus     : function(){
 			return {
 				dependencies : dependencies,
 				resolved     : resolved,
