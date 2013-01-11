@@ -9,11 +9,11 @@ var Pendant = function newPendant(){
 		++resolved >= dependencies && fulfill();
 	}
 
-	function fullfill(){
+	function fulfill(){
 		fulfilled = true;
 
 		while(dependants.length){
-			dependant.shift()();
+			dependants.shift()();
 		}
 	}
 
@@ -36,7 +36,7 @@ var Pendant = function newPendant(){
 			}
 		},
 		// Return the pendant's internal state
-		status        : function(){
+		getstatus     : function(){
 			return {
 				dependencies : dependencies,
 				resolved     : resolved,
