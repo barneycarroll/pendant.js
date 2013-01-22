@@ -18,7 +18,7 @@ void function pendantInit(context){
 			pendants[setup.key] = pendant;
 		}())                                || void(0);
 		var delay        = setup.delay      || 0;
-		var patient      = setup.patient    || false;
+		var patience     = setup.patience   || false;
 		// # of dependencies to be resolved
 		var dependencies = 0;
 		// # of dependencies resolved
@@ -62,7 +62,7 @@ void function pendantInit(context){
 		// Pass in a function that gets called when all dependencies have been resolved,
 		// or executes immediately if resolution has been fulfilled.
 		pendant.addDependant = function addDependant(dependant){
-			if(fulfilled && !patient){
+			if(fulfilled && !patience){
 				dependant(pendant);
 			}
 			else {
@@ -95,7 +95,7 @@ void function pendantInit(context){
 				dependencies : dependencies,
 				fulfilled    : fulfilled,
 				key          : key,
-				patient      : patient,
+				patience     : patience,
 				resolved     : resolved
 			};
 		};
@@ -131,7 +131,7 @@ void function pendantInit(context){
 		}
 
 		function attemptFulfillment(){
-			if(patient){
+			if(patience){
 				return;
 			}
 
