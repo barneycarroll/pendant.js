@@ -4,7 +4,7 @@ void function pendantInit(context){
 	// Accessor method
 	function getPendant(key){
 		if(pendants.hasOwnProperty(key)){
-			return pendant[key];
+			return pendants[key];
 		}
 	};
 
@@ -35,7 +35,7 @@ void function pendantInit(context){
 
 		// Pass in function(s) for immediate execution:
 		// It registers a dependency and passes reference to a function that resolves it.
-		pendant.addDependency = function addDependency(dependency){
+		pendant.addDependency = function addDependency(){
 			if(!dependency)
 				return pendant;
 
@@ -45,10 +45,10 @@ void function pendantInit(context){
 			// Accepts multiple functions in array form or separate arguments.
 			var newDependencies = 
 				toString.call(dependency) == '[object Array]' 
-				? dependency 
+				? arguments[0] 
 				: arguments;
 
-			for(var i = 0, l = arguments.length; i < l; ++i){
+			for(var i = 0, l = newDependencies.length; i < l; ++i){
 				++dependencies;
 
 				// Dependencies are executed immediately and passed a new resolution,
@@ -94,6 +94,7 @@ void function pendantInit(context){
 				dependants   : dependants,
 				dependencies : dependencies,
 				fulfilled    : fulfilled,
+				key          : key,
 				patient      : patient,
 				resolved     : resolved
 			};
