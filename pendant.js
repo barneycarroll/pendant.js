@@ -3,9 +3,9 @@ void function pendantInit(context){
 
 	// Accessor method
 	function getPendant(key){
-		if(pendants.hasOwnProperty(key)){
-			return pendants[key];
-		}
+		return key && pendants[key]
+			? pendants[key]
+			: pendants;
 	};
 
 	function pendant(setup){
