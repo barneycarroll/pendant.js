@@ -44,7 +44,7 @@ void function pendantInit(context){
 
 			// Accepts multiple functions in array form or separate arguments.
 			var newDependencies = 
-				toString.call(dependency) == '[object Array]' 
+				Object.prototype.toString.call(dependency) == '[object Array]' 
 				? arguments[0] 
 				: arguments;
 
