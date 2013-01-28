@@ -29,13 +29,15 @@ void function pendantInit(context){
 		var fulfilled    = false;
 		// Holds timeout for delayed fullfill function
 		var countdown;
+		// Store data from dependencies
+		var resolutions  = [];
 
 
 		// Exposed functions
 
 		// Pass in function(s) for immediate execution:
 		// It registers a dependency and passes reference to a function that resolves it.
-		pendant.addDependency = function addDependency(){
+		pendant.addDependency = function addDependency(dependency){
 			if(!dependency)
 				return pendant;
 
@@ -96,7 +98,8 @@ void function pendantInit(context){
 				fulfilled    : fulfilled,
 				key          : key,
 				patience     : patience,
-				resolved     : resolved
+				resolved     : resolved,
+				resolutions  : resolutions
 			};
 		};
 
@@ -111,11 +114,15 @@ void function pendantInit(context){
 		function resolution(){
 			// Internal state to prevent multiple resolutions of same dependency
 			var dependencyResolved = false;
+			// Placeholder
+			var index              = resolutions.length;
 
 			// Exposed to dependency functions 
-			return function resolve(){
+			return function resolve(data){
 				if(!dependencyResolved){
 					++resolved;
+
+					resolutions[index] = data;
 
 					dependencyResolved = true;
 
