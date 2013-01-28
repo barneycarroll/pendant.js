@@ -55,7 +55,7 @@ void function pendantInit(context){
 
 				// Dependencies are executed immediately and passed a new resolution,
 				// Which exposes a resolve function to be called as an when desired.
-				newDependencies[i](resolution(), pendant);
+				newDependencies[i](makeResolution(), pendant);
 			}
 
 			return pendant;
@@ -90,8 +90,8 @@ void function pendantInit(context){
 
 			return pendant;
 		};
-
-		pendant.getStatus    = function getStatus(){
+		// Getters
+		pendant.info         = function getInfo(){
 			return {
 				dependants   : dependants,
 				dependencies : dependencies,
@@ -99,10 +99,34 @@ void function pendantInit(context){
 				key          : key,
 				patience     : patience,
 				resolved     : resolved,
+				resolution   : resolution,
 				resolutions  : resolutions
-			};
+			}
 		};
-
+		pendant.dependants   = function getDependants(){
+			return dependants
+		};
+		pendant.dependencies = function getDependencies(){
+			return dependencies
+		};
+		pendant.fulfilled    = function getFulfilled(){
+			return fulfilled
+		};
+		pendant.key          = function getKey(){
+			return key
+		};
+		pendant.patience     = function getPatience(){
+			return patience
+		};
+		pendant.resolved     = function getResolved(){
+			return resolved
+		};
+		pendant.resolution   = function getResolution(){
+			return resolution
+		};
+		pendant.resolutions  = function getResolutions(){
+			return resolutions
+		};
 
 		// Internal functions
 
@@ -111,7 +135,7 @@ void function pendantInit(context){
 			pendant.addDependency(setup.dependencies);
 		}();
 
-		function resolution(){
+		function makeResolution(){
 			// Internal state to prevent multiple resolutions of same dependency
 			var dependencyResolved = false;
 			// Placeholder
@@ -122,7 +146,7 @@ void function pendantInit(context){
 				if(!dependencyResolved){
 					++resolved;
 
-					resolutions[index] = data;
+					resolution = data;
 
 					dependencyResolved = true;
 
