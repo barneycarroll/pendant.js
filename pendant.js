@@ -1,3 +1,8 @@
+// pendant.js 0.0.2
+// (c) 2013 Barney Carroll
+// Your choice of Licence here: _______________
+
+
 void function pendantInit(context){
 	var pendants = {};
 
