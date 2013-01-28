@@ -30,7 +30,7 @@ void function pendantInit(context){
 		// Holds timeout for delayed fullfill function
 		var countdown;
 		// Store data from dependencies
-		var resolutions  = [];
+		var resolution;
 
 
 		// Exposed functions
@@ -99,8 +99,7 @@ void function pendantInit(context){
 				key          : key,
 				patience     : patience,
 				resolved     : resolved,
-				resolution   : resolution,
-				resolutions  : resolutions
+				resolution   : resolution
 			}
 		};
 		pendant.dependants   = function getDependants(){
@@ -124,9 +123,6 @@ void function pendantInit(context){
 		pendant.resolution   = function getResolution(){
 			return resolution
 		};
-		pendant.resolutions  = function getResolutions(){
-			return resolutions
-		};
 
 		// Internal functions
 
@@ -146,7 +142,8 @@ void function pendantInit(context){
 				if(!dependencyResolved){
 					++resolved;
 
-					resolution = data;
+					if(data)
+						resolution = data;
 
 					dependencyResolved = true;
 
