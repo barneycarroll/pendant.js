@@ -1,16 +1,19 @@
 pendant.js
-==========
+========
 
-Observer pattern library with a focus on dynamically extensible dependencies.
+Pendant.js is a variation on the [Observer](http://en.wikipedia.org/wiki/Observer_pattern) and [Promise](http://wiki.commonjs.org/wiki/Promises/A) patterns with a focus on dynamically extensible dependencies.
 
-Usage
-=====
+A Pendant describes conditions to be resolved (dependencies) before a fulfillment event is triggered, leading to the execution of outcomes (dependants).
+
+A Pattern differs from a Promise in that it can be extended (dependencies and dependants can be added after definition, partial and/or total fulfillment), and dependency resolution only comes in a single flavour: resolved (as opposed to success, failure, progress). However, each dependency's resolve function gets access to, and can modify, the Pendant's internal resolution object (available to dependant functions on fulfillment), allowing users to create messaging systems according to their needs.
+
+# Usage
 
 Create pendants with new Pendant.
 
 Key methods are addDependant and addDependency.
 
-Dependencies are functions that get passed a resolution function to call when their esoteric callbacks are happy.
+Dependencies are functions that get passed a resolve function to call when their conditions have been met.
 
 Dependants are functions that will execute when all dependencies have resolved.
 
