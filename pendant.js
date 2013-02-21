@@ -27,6 +27,11 @@ void function pendantInit(context){
 	// ...And bind the getter too
 	context.Pendant.get = getPendant;
 
+	// Utility function
+	function isArray(x){
+		return Object.prototype.toString.call(x) === '[object Array]';
+	}
+
 	// Let's make a pendant!
 	function Pendant(setup){
 
@@ -122,13 +127,21 @@ void function pendantInit(context){
 
 		// Pass in function(s) for immediate execution:
 		// It registers a dependency and passes reference to a function that resolves it.
-		pendant.addDependency = function addDependency(){
+		pendant.addDependency = function addDependency(dependencies){
 			// Stop everything, new conditions incoming!
 			if(countdown){
 				clearTimeout(countdown);
 			}
 
-			var newDependencies = arguments;
+			var newDependencies;
+
+			// Accept arrays (useful in setup) or one or more function arguments
+			if(isArray(dependencies)){
+				newDependencies = dependencies;
+			}
+			else {
+				newDependencies = arguments;
+			}
 
 			for(var i = 0, l = newDependencies.length; i < l; ++i){
 				++dependencies;
@@ -143,8 +156,16 @@ void function pendantInit(context){
 
 		// Pass in a function that gets called when all dependencies have been resolved,
 		// or executes immediately if resolution has been fulfilled.
-		pendant.addDependant = function addDependant(){
-			var newDependants = arguments;
+		pendant.addDependant = function addDependant(dependants){
+			var newDependants;
+
+			// Accept arrays (useful in setup) or one or more function arguments
+			if(isArray(dependencies)){
+				newDependants = dependants;
+			}
+			else {
+				newDependants = arguments;
+			}
 
 			for(var i = 0, l = newDependants.length; i < l; ++i){
 				if(fulfilled && !patience && !countdown){
