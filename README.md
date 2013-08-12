@@ -26,20 +26,20 @@ Example
 
 There's an abstract event, which is when all the page's resources are ready. I need to do various things when I know that's all happened. So I create a Pendant.
 
-    var resourcesReady = new Pendant({
+    var resourcesReady = Pendant({
       key          : 'resourcesReady',
-    	dependencies : [
-    		function pageLoad(resolve){
-    			$(window).on('load', resolve);
-    		}
-    	],
-    	dependants   : [
-    		function reOrderLayout(){
-    			$('body').masonry({
-    				itemSelector: '.block'
-    			});
-    		}
-    	]
+        dependencies : [
+            function pageLoad(resolve){
+                $(window).on('load', resolve);
+            }
+        ],
+        dependants   : [
+            function reOrderLayout(){
+                $('body').masonry({
+                    itemSelector: '.block'
+                });
+            }
+        ]
     });
 
 The initial conditions are pretty simple. One of my dependant actions is that I want to use the awesome Masonry jQuery plugin to make the layout all funky - it's dependent on resources being ready because images need to load before their dimensions are known to us. So I'm also setting up that dependency there. 
@@ -48,11 +48,11 @@ _Dependencies_ are functions that get provided with a special function as an arg
 Anyway, I later realise there are more functions that depend upon `resourcesReady`'s conditions being met.
 
     void function hidePageUntilReady(){
-    	$('html').css('visibility', 'hidden');
+        $('html').css('visibility', 'hidden');
 
-    	resourcesReady.addDependant(function revealPage(){
-    		$('html').css('visibility', 'visibility');
-    	});
+        resourcesReady.addDependant(function revealPage(){
+            $('html').css('visibility', 'visibility');
+        });
     }();
 
 Specifically, I don't want the user seeing the page before it's ready. So I invoke `resourcesReady`'s `addDependant` function.
@@ -60,22 +60,22 @@ Specifically, I don't want the user seeing the page before it's ready. So I invo
 Later on, in another file…
 
     Pendant.get('resourcesReady')
-    	.addDependency(function getContentFrom3rdParty(resolve, pendant){
-    		$.ajax({
-    			success : AJAXcallback(data){
-    				var resolution = $.extend(
-    					{'socialmediaData' : data}, 
-    					pendant.resolution()
-    				);
+        .addDependency(function getContentFrom3rdParty(resolve, pendant){
+            $.ajax({
+                success : AJAXcallback(data){
+                    var resolution = $.extend(
+                        {'socialmediaData' : data}, 
+                        pendant.resolution()
+                    );
 
-    				resolve(resolution);
-    			},
-    			url     : 'socialmedia.com'
-    		});
-    	})
-    	.addDependant(function tellUserAboutSocialMedia(pendant){
-    		alert('Read this from the Internet: \n' + pendant.resolution.socialmediaData);
-    	});
+                    resolve(resolution);
+                },
+                url     : 'socialmedia.com'
+            });
+        })
+        .addDependant(function tellUserAboutSocialMedia(pendant){
+            alert('Read this from the Internet: \n' + pendant.resolution.socialmediaData);
+        });
 
 We've changed scope, meaning the `resourcesReady` variable is no longer available. No worries, the Pendant object has a get method that can retrieve Pendants that were given a key at construction time.
 
