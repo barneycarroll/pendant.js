@@ -1,4 +1,4 @@
-/* Pendant.js v0.1.4
+/* Pendant.js v0.2
  *
  * https://github.com/barneycarroll/pendant.js/
  *
@@ -6,208 +6,209 @@
  * To view a copy of this license, visit http://creativecommons.org/licenses/by/3.0/.
  */
 void function pendantInit(context){
-	// Store to cache pendants without the need to keep a reference in scope
-	var pendants = {};
+    // Store to cache pendants without the need to keep a reference in scope
+    var pendants = {};
 
-	// Retrieval method
-	function getPendant(key){
-		if(key && pendants[key]){
-			return pendants[key];
-		}
-		else {
-			return pendants;
-		}
-	}
+    // Utility function
+    function isArray(x){
+        return {}.toString.call(x) === '[object Array]';
+    }
 
-	// Bind constructor to context
-	context.Pendant     = function pendantAccessor(x){
-		return new Pendant(x);
-	};
+    // Retrieval method: specify a name to get that pendant, or blank to retrieve all of them
+    function getPendant(key){
+        if(key && pendants[key]){
+            return pendants[key];
+        }
+        else {
+            return pendants;
+        }
+    }
 
-	// ...And bind the getter too
-	context.Pendant.get = getPendant;
+    // Let's make a pendant!
+    function makePendant(setup){
+        // Internal reference
 
-	// Utility function
-	function isArray(x){
-		return Object.prototype.toString.call(x) === '[object Array]';
-	}
+            // A reference to the pendant in question
+        var pendant      = {},
+            // The rest is all config, with setup as starting point and default value after the bars`
+            config       = setup             || {};
+            // Specifying a key allows retrieval from the calling context's Pendant object
+            key          = config.key && (function addPendant(){
+                pendants[config.key] = pendant;
+            }())                             || void(0),
+            // Milliseconds until fulfillment after final resolution
+            delay        = config.delay      || 0;
+            // Patience defers fulfillment until the pendant is turned back on
+            patience     = config.patience   || false;
+            // # of dependencies to be resolved, to be compared to...
+            dependencies = 0;
+            // # of dependencies resolved
+            resolved     = 0;
+            // Functions waiting on dependencies
+            dependants   = config.dependants || [];
+            // Whether this pendant is resolved or not
+            fulfilled    = false;
+            // Reference timeout for delayed fullfillment
+            countdown;
+            // Accessible to dependency resolution and dependant functions
+            resolution;
+            
 
-	// Let's make a pendant!
-	function Pendant(setup){
+        // Internal functions
 
-		// Internal reference
+        // Initialise any passed-in dependencies
+        if(config.dependencies){
+            pendant.addDependency(config.dependencies);
+        }
 
-		// An internal reference to self, to avoid confusion downscope
-		var pendant      = this;
-		var config       = setup            || {};
-		// Specifying a key allows retrieval from the calling context's Pendant object
-		var key          = config.key        && (function addPendant(){
-			pendants[config.key] = pendant;
-		}())                                || void(0);
-		// Milliseconds until fulfillment after final resolution
-		var delay        = config.delay      || 0;
-		// Patience defers fulfillment until the pendant is turned back on
-		var patience     = config.patience   || false;
-		// # of dependencies to be resolved, to be compared to...
-		var dependencies = 0;
-		// # of dependencies resolved
-		var resolved     = 0;
-		// Functions waiting on dependencies
-		var dependants   = config.dependants || [];
-		// Whether this pendant is resolved or not
-		var fulfilled    = false;
-		// Reference timeout for delayed fullfillment
-		var countdown;
-		// Accessible to dependency resolution and dependant functions
-		var resolution;
+        // Create a new resolution function to pass to a dependency
+        function makeResolution(){
+            // Internal resolution state
+            var dependencyResolved = false;
 
-		// Internal functions
+            // Exposed to dependency functions
+            return function resolve(data){
+                // User can pass in arbitrary data to be stored in the pendant
+                if(data){
+                    resolution = data;
+                }
 
-		// Initialise any passed-in dependencies
-		if(config.dependencies){
-			pendant.addDependency(config.dependencies);
-		}
+                if(!dependencyResolved){
+                    // Maintain count
+                    ++resolved;
 
-		// Create a new resolution function to pass to a dependency
-		function makeResolution(){
-			// Internal resolution state
-			var dependencyResolved = false;
+                    // Prevent re-execution
+                    dependencyResolved = true;
 
-			// Exposed to dependency functions
-			return function resolve(data){
-				// User can pass in arbitrary data to be stored in the pendant
-				if(data){
-					resolution = data;
-				}
+                    // Trigger fulfillment if need be
+                    if(dependencies == resolved){
+                        attemptFulfillment();
+                    }
+                }
 
-				if(!dependencyResolved){
-					// Maintain count
-					++resolved;
+                // Return pendant to calling dependency function,
+                // Allows state-checking, further manipulation, etc
+                return pendant;
+            };
+        }
 
-					// Prevent re-execution
-					dependencyResolved = true;
+        function attemptFulfillment(){
+            // Pendant needs to be turned on before execution
+            if(patience){
+                return;
+            }
 
-					// Trigger fulfillment if need be
-					if(dependencies == resolved){
-						attemptFulfillment();
-					}
-				}
+            function fulfill(){
+                while(dependants.length){
+                    // Dependants are shifted out then executed.
+                    // Pendant can then be seen to have 0 dependants.
+                    dependants.shift()(pendant);
+                }
 
-				// Return pendant to calling dependency function,
-				// Allows state-checking, further manipulation, etc
-				return pendant;
-			};
-		}
+                fulfilled = true;
 
-		function attemptFulfillment(){
-			// Pendant needs to be turned on before execution
-			if(patience){
-				return;
-			}
+                // Clear reference
+                countdown = void 0;
+            }
 
-			function fulfill(){
-				while(dependants.length){
-					// Dependants are shifted out then executed.
-					// Pendant can then be seen to have 0 dependants.
-					dependants.shift()(pendant);
-				}
-
-				fulfilled = true;
-
-				// Clear reference
-				countdown = void 0;
-			}
-
-			// If it doesn't, execute the pendant!
-			countdown = setTimeout(fulfill, delay);
-		}
+            // If it doesn't, execute the pendant!
+            countdown = setTimeout(fulfill, delay);
+        }
 
 
-		// Exposed functions
+        // Exposed functions
 
-		// Pass in function(s) for immediate execution:
-		// It registers a dependency and passes reference to a function that resolves it.
-		pendant.addDependency = function addDependency(dependencies){
-			// Stop everything, new conditions incoming!
-			if(countdown){
-				clearTimeout(countdown);
-			}
+        // Pass in function(s) for immediate execution:
+        // It registers a dependency and passes reference to a function that resolves it.
+        pendant.addDependency = function addDependency(dependencies){
+            // Stop everything, new conditions incoming!
+            if(countdown){
+                clearTimeout(countdown);
+            }
 
-			var newDependencies;
+            var newDependencies;
 
-			// Accept arrays (useful in setup) or one or more function arguments
-			if(isArray(dependencies)){
-				newDependencies = dependencies;
-			}
-			else {
-				newDependencies = arguments;
-			}
+            // Accept arrays (useful in setup) or one or more function arguments
+            if(isArray(dependencies)){
+                newDependencies = dependencies;
+            }
+            else {
+                newDependencies = arguments;
+            }
 
-			for(var i = 0, l = newDependencies.length; i < l; ++i){
-				++dependencies;
+            for(var i = 0, l = newDependencies.length; i < l; ++i){
+                ++dependencies;
 
-				// Dependencies are executed immediately and passed a new resolution,
-				// Which exposes a resolve function to be called as an when desired.
-				newDependencies[i](makeResolution(), pendant);
-			}
+                // Dependencies are executed immediately and passed a new resolution,
+                // Which exposes a resolve function to be called as an when desired.
+                newDependencies[i](makeResolution(), pendant);
+            }
 
-			return pendant;
-		};
+            return pendant;
+        };
 
-		// Pass in a function that gets called when all dependencies have been resolved,
-		// or executes immediately if resolution has been fulfilled.
-		pendant.addDependant = function addDependant(dependants){
-			var newDependants;
+        // Pass in a function that gets called when all dependencies have been resolved,
+        // or executes immediately if resolution has been fulfilled.
+        pendant.addDependant = function addDependant(dependants){
+            var newDependants;
 
-			// Accept arrays (useful in setup) or one or more function arguments
-			if(isArray(dependencies)){
-				newDependants = dependants;
-			}
-			else {
-				newDependants = arguments;
-			}
+            // Accept arrays (useful in setup) or one or more function arguments
+            if(isArray(dependencies)){
+                newDependants = dependants;
+            }
+            else {
+                newDependants = arguments;
+            }
 
-			for(var i = 0, l = newDependants.length; i < l; ++i){
-				if(fulfilled && !patience && !countdown){
-					newDependants[i](pendant);
-				}
-				else {
-					dependants.push(newDependants[i]);
-				}
-			}
+            for(var i = 0, l = newDependants.length; i < l; ++i){
+                if(fulfilled && !patience && !countdown){
+                    newDependants[i](pendant);
+                }
+                else {
+                    dependants.push(newDependants[i]);
+                }
+            }
 
-			return pendant;
-		};
+            return pendant;
+        };
 
-		// Turn fulfillment on or off, useful for pausing til arbitrary points
-		pendant.off          = function pendantOff(){
-			pendant.patience = true;
+        // Turn fulfillment on or off, useful for pausing til arbitrary points
+        pendant.off          = function pendantOff(){
+            pendant.patience = true;
 
-			return pendant;
-		};
-		pendant.on           = function pendantOn(){
-			pendant.patience = false;
+            return pendant;
+        };
+        pendant.on           = function pendantOn(){
+            pendant.patience = false;
 
-			if(dependencies == resolved){
-				attemptFulfillment();
-			}
+            if(dependencies == resolved){
+                attemptFulfillment();
+            }
 
-			return pendant;
-		};
+            return pendant;
+        };
 
-		// Getters
-		pendant.get          = function getInfo(){
-			return {
-				dependants   : dependants,
-				dependencies : dependencies,
-				fulfilled    : fulfilled,
-				key          : key,
-				patience     : patience,
-				resolved     : resolved,
-				resolution   : resolution
-			};
-		};
+        // Getters
+        pendant.get          = function getInfo(){
+            return {
+                dependants   : dependants,
+                dependencies : dependencies,
+                fulfilled    : fulfilled,
+                key          : key,
+                patience     : patience,
+                resolved     : resolved,
+                resolution   : resolution
+            };
+        };
 
-		return pendant;
-	}
+        return pendant;
+    }
+
+    void (function bindToContext(){
+        // Bind constructor to context
+        context.Pendant     = makePendant;
+
+        // ...And bind the getter too
+        context.Pendant.get = getPendant;
+    }());
 }(this);
