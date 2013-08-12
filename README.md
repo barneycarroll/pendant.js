@@ -9,23 +9,17 @@ A Pattern differs from a Promise in that it can be extended (dependencies and de
 
 # Usage
 
-Create pendants with new Pendant.
+Create pendants with `var myNewPendant = Pendant( /* config */ )`. Note that you don't have to assign the new pendant to a variable as long as you pass in a `key` as part of the config object: the `Pendant` object keeps an internal reference to all pendants, such that `Pendant( { key : 'myNewPendant' } )` will make the new pendant accessible via `Pendant.get('myNewPendant')`. This will come in handy if you want to share reference to pendants across different scopes.
 
-Key methods are addDependant and addDependency.
+The key methods for your pendant `myNewPendant` would then be `addDependency( /* function( ) */ )` and `addDependant( /* function */ )`:
 
-Dependencies are functions that get passed a resolve function to call when their conditions have been met.
+* Dependencies are functions that get passed a `resolve` function as their only argument. The function executes immediately and should contain event listeners or timeouts that should then execute `resolve()` to let the pendant know their conditions have been met.
 
-Dependants are functions that will execute when all dependencies have resolved.
+* Dependants are functions that will execute when all dependencies have resolved.
 
-You can turn it on or off.
+You can turn it `on()` or `off()`, and get a complete reference of its internal status with `get()`.
 
-Check its state with getStatus.
-
-And you can set it up with new Pendant({key:identifier}) to then retrieve it with Pendant.get(identifier)
-
-
-The crucial thing is that you can add dependencies asynchronously.
-So one AJAX call might result for whatever reason in calling another piece of data. You can keep on adding dependencies.
+The crucial benefit of pendants over other methods of setting up conditions to be met for a given outcome is that you can add dependency conditions and dependant outcomes asynchronously — so one AJAX call might result in calling another piece of data, or extra user input might add another condition, pause, and / or outcome. You can keep on adding.
 
 Example
 =======
